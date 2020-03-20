@@ -22,11 +22,8 @@ int dist = 160 / scale; //TAMANHO DO QUADRADO
 double Twidth = 638.0 / scale; //VALOR TOTAL DO COMPRIMENTO DA TELA
 double Theight = 479.0 / scale; //VALOR TOTAL DA ALTURA DA TELA
 double Dwidth = Twidth / 6.0;
-//double Dheight = Theight / 6.0;
 
-void detectAndDraw(Mat& img, player& cascade,
-    CascadeClassifier& nestedCascade,
-    double scale, bool& foi);
+void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi);
 
 string cascadeName;
 string nestedCascadeName;
@@ -73,22 +70,15 @@ int main(int argc, const char** argv)
     VideoCapture capture;
     Mat frame, image;
     string inputName;
-    CascadeClassifier nestedCascade;
     player cascade = player("Alguém");
     clock_t relogio_init, relogio_end;
-
-    //double scale = 3.0;
     
     srand(time(NULL));
     bool flag = true;
    
     string folder = "/home/andre/Downloads/opencv-4.1.2/data/haarcascades/";
     cascadeName = folder + "haarcascade_frontalface_alt.xml";
-    nestedCascadeName = folder + "haarcascade_eye_tree_eyeglasses.xml";
 
-
-    if (!nestedCascade.load(samples::findFileOrKeep(nestedCascadeName)))
-        cerr << "WARNING: Could not load classifier cascade for nested objects" << endl;
     if (!cascade.load(samples::findFile(cascadeName)))
     {
         cerr << "ERROR: Could not load classifier cascade" << endl;
@@ -111,15 +101,13 @@ int main(int argc, const char** argv)
             capture >> frame;
             if (frame.empty())
                 break;
-            
-            //Mat frame1 = frame.clone();
-            detectAndDraw(frame, cascade, nestedCascade, scale, flag);
+            detectAndDraw(frame, cascade, scale, flag);
             relogio_end = clock();
             if ((double)(relogio_end - relogio_init)/1000000.0 >= 120)
             {
                 cv::putText(frame, //target image
                 "Fim de Jogo! Pressione 'q' para sair...", //text
-                cv::Point(270, 50), //top-left position
+                cv::Point(270, 25), //top-left position
                 cv::FONT_HERSHEY_DUPLEX,
                 0.5,
                 CV_RGB(255, 0, 0), //font color
@@ -141,9 +129,7 @@ int main(int argc, const char** argv)
     return 0;
 }
 
-void detectAndDraw(Mat& img, player& cascade,
-    CascadeClassifier& nestedCascade,
-    double scale, bool& foi)
+void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
 {
     static int frames = 0;
     double t = 0;
@@ -197,20 +183,13 @@ void detectAndDraw(Mat& img, player& cascade,
     for (size_t i = 0; i < faces.size(); i++)
     {
         Rect r = faces[i];
-        //printf("[%3d, %3d]  -  [%3d, %3d]\n", r.x, r.y, r.x + r.width - 1, r.y + r.height - 1);
         Mat smallImgROI;
-        //vector<Rect> nestedObjects;
         Point center;
         Scalar color = colors[i % 8];
         int radius;
 
 
         if (r.x >= vx1 && (r.x + r.width - 1) <= vx2) { //DENTRO DO QUADRADO DESENHADO
-
-            /*rectangle(img, Point(cvRound(r.x * scale), cvRound(r.y * scale)),
-                Point(cvRound((r.x + r.width - 1) * scale), cvRound((r.y + r.height - 1) * scale)),
-                color, 3, 8, 0);*/
-            //printf("[%3d, %3d]  -  [%3d, %3d]\n", r.x, r.y, r.x + r.width - 1, r.y + r.height - 1);
             cout << "Conseguiu!" <<endl;
 
             foi = true;
@@ -223,13 +202,10 @@ void detectAndDraw(Mat& img, player& cascade,
         
         
     }
-
-    //if (!fruta.empty())
-        //drawTransparency2(img, fruta, 100, 100);
     score = "Score: "+to_string(cascade.getScore());
     cv::putText(img, //target image
         score, //text
-        cv::Point(50, 50), //top-left position
+        cv::Point(25, 25), //top-left position
         cv::FONT_HERSHEY_DUPLEX,
         1.0,
         CV_RGB(255, 0, 0), //font color
