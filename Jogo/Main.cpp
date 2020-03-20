@@ -22,12 +22,10 @@ int dist = 160 / scale; //TAMANHO DO QUADRADO
 double Twidth = 638.0 / scale; //VALOR TOTAL DO COMPRIMENTO DA TELA
 double Theight = 479.0 / scale; //VALOR TOTAL DA ALTURA DA TELA
 double Dwidth = Twidth / 6.0;
+string cascadeName;
 
 void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi);
 
-string cascadeName;
-string nestedCascadeName;
-Mat fruta;
 
 /**
  * @brief Draws a transparent image over a frame Mat.
