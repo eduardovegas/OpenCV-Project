@@ -115,7 +115,7 @@ int main(int argc, const char** argv)
             //Mat frame1 = frame.clone();
             detectAndDraw(frame, cascade, nestedCascade, scale, flag);
             relogio_end = clock();
-            if ((double)(relogio_end - relogio_init)/1000000.0 >= 10)
+            if ((double)(relogio_end - relogio_init)/1000000.0 >= 120)
             {
                 cv::putText(frame, //target image
                 "Fim de Jogo! Pressione 'q' para sair...", //text
