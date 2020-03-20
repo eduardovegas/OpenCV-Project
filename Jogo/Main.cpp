@@ -2,8 +2,9 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-#include <opencv2\opencv.hpp>
-
+#include <opencv2/opencv.hpp>
+#include "player.hpp"
+#include <fstream>
 #include <iostream>
 #include <stdlib.h>
 #include <time.h>
@@ -22,7 +23,7 @@ double Theight = 479.0 / scale; //VALOR TOTAL DA ALTURA DA TELA
 double Dwidth = Twidth / 6.0;
 //double Dheight = Theight / 6.0;
 
-void detectAndDraw(Mat& img, CascadeClassifier& cascade,
+void detectAndDraw(Mat& img, player& cascade,
     CascadeClassifier& nestedCascade,
     double scale, bool& foi);
 
@@ -65,23 +66,21 @@ void drawTransparency2(Mat frame, Mat transp, int xPos, int yPos) {
     addWeighted(roi2, alpha, roi1, 1.0 - alpha, 0.0, roi1);
 }
 
+
 int main(int argc, const char** argv)
 {
     VideoCapture capture;
     Mat frame, image;
     string inputName;
-    CascadeClassifier cascade, nestedCascade;
+    CascadeClassifier nestedCascade;
+    player cascade = player("Alguém");
+
     //double scale = 3.0;
     
     srand(time(NULL));
     bool flag = true;
    
-
-    fruta = cv::imread("laranja.png", IMREAD_UNCHANGED);
-    if (fruta.empty())
-        printf("Error opening file laranja.pn\n");
-
-    string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
+    string folder = "/home/andre/Downloads/opencv-4.1.2/data/haarcascades/";
     cascadeName = folder + "haarcascade_frontalface_alt.xml";
     nestedCascadeName = folder + "haarcascade_eye_tree_eyeglasses.xml";
 
@@ -122,7 +121,7 @@ int main(int argc, const char** argv)
     return 0;
 }
 
-void detectAndDraw(Mat& img, CascadeClassifier& cascade,
+void detectAndDraw(Mat& img, player& cascade,
     CascadeClassifier& nestedCascade,
     double scale, bool& foi)
 {
@@ -142,6 +141,7 @@ void detectAndDraw(Mat& img, CascadeClassifier& cascade,
         Scalar(255,0,255)
     };
     Mat gray, smallImg;
+    string score;
 
     cvtColor(img, gray, COLOR_BGR2GRAY);
     double fx = 1 / scale;
@@ -156,14 +156,10 @@ void detectAndDraw(Mat& img, CascadeClassifier& cascade,
         | CASCADE_SCALE_IMAGE,
         Size(30, 30));
 
-    //frames++;
-    //if (frames % 30 == 0)
-        //system("mplayer /usr/lib/libreoffice/share/gallery/sounds/kling.wav &");
-
+    
     t = (double)getTickCount() - t;
-    //    printf( "detection time = %g ms\n", t*1000/getTickFrequency());
 
-    Scalar cor = colors[1];
+    Scalar cor = colors[6];
 
     if (foi == true) {
 
@@ -195,9 +191,11 @@ void detectAndDraw(Mat& img, CascadeClassifier& cascade,
             /*rectangle(img, Point(cvRound(r.x * scale), cvRound(r.y * scale)),
                 Point(cvRound((r.x + r.width - 1) * scale), cvRound((r.y + r.height - 1) * scale)),
                 color, 3, 8, 0);*/
-            printf("[%3d, %3d]  -  [%3d, %3d]\n", r.x, r.y, r.x + r.width - 1, r.y + r.height - 1);
+            //printf("[%3d, %3d]  -  [%3d, %3d]\n", r.x, r.y, r.x + r.width - 1, r.y + r.height - 1);
+            cout << "Conseguiu!" <<endl;
 
             foi = true;
+            cascade.incrementaScore();
         }
         else {
 
@@ -208,14 +206,14 @@ void detectAndDraw(Mat& img, CascadeClassifier& cascade,
 
     //if (!fruta.empty())
         //drawTransparency2(img, fruta, 100, 100);
-
-        cv::putText(img, //target image
-            "Sexto dia de quarentena", //text
-            cv::Point(50, 50), //top-left position
-            cv::FONT_HERSHEY_DUPLEX,
-            1.0,
-            CV_RGB(255, 0, 0), //font color
-            2);
+    score = "Score: "+to_string(cascade.getScore());
+    cv::putText(img, //target image
+        score, //text
+        cv::Point(50, 50), //top-left position
+        cv::FONT_HERSHEY_DUPLEX,
+        1.0,
+        CV_RGB(255, 0, 0), //font color
+        2);
 
     imshow("result", img);
 
