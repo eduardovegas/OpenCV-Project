@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <time.h>
+#include <ctime>
 
 using namespace std;
 using namespace cv;
@@ -74,6 +75,7 @@ int main(int argc, const char** argv)
     string inputName;
     CascadeClassifier nestedCascade;
     player cascade = player("Alguém");
+    clock_t relogio_init, relogio_end;
 
     //double scale = 3.0;
     
@@ -103,6 +105,7 @@ int main(int argc, const char** argv)
     {
         cout << "Video capturing has been started ..." << endl;
 
+        relogio_init = clock();
         for (;;)
         {
             capture >> frame;
@@ -111,6 +114,23 @@ int main(int argc, const char** argv)
             
             //Mat frame1 = frame.clone();
             detectAndDraw(frame, cascade, nestedCascade, scale, flag);
+            relogio_end = clock();
+            if ((double)(relogio_end - relogio_init)/1000000.0 >= 10)
+            {
+                cv::putText(frame, //target image
+                "Fim de Jogo! Pressione 'q' para sair...", //text
+                cv::Point(270, 50), //top-left position
+                cv::FONT_HERSHEY_DUPLEX,
+                0.5,
+                CV_RGB(255, 0, 0), //font color
+                2);
+                imshow("result", frame);
+
+                cout << "Score: " << cascade.getScore() << endl;
+                char k = (char)waitKey(0);
+                if(k == 27 || k == 'q' || k == 'Q')
+                    break;
+            }
             
             char c = (char)waitKey(10);
             if (c == 27 || c == 'q' || c == 'Q')
@@ -125,7 +145,6 @@ void detectAndDraw(Mat& img, player& cascade,
     CascadeClassifier& nestedCascade,
     double scale, bool& foi)
 {
-
     static int frames = 0;
     double t = 0;
     vector<Rect> faces, faces2;
@@ -201,7 +220,8 @@ void detectAndDraw(Mat& img, player& cascade,
 
             foi = false;
         }
-
+        
+        
     }
 
     //if (!fruta.empty())
