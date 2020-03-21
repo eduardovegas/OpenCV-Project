@@ -1,7 +1,7 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
-#include<iostream>
+#include <iostream>
 #include <opencv2/opencv.hpp>
 #include "opencv2/objdetect.hpp"
 
@@ -14,9 +14,13 @@ private:
     int score;
     string nome;
 public:
+
+    player();
     player(string nome);
-    string getNome();
     void incrementaScore();
+    string getNome();
     int getScore();
+    void setNome(string);
+    void setScore(int);
 };
 #endif
