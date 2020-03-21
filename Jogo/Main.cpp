@@ -2,7 +2,6 @@
 #include <fstream>
 //#include <Windows.h>
 #include <string>
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <ctime> //Clock
@@ -108,7 +107,7 @@ int main() {
                         break;
 
                     pegar_sigla(frame, sigla, nome);
-                    
+
                     cascade.setNome(nome[0]+nome[1]+nome[2]);
                     cout << cascade.getNome() <<endl;
                     
@@ -117,15 +116,17 @@ int main() {
                     //PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar o jogo
                     
                     relogio_init = clock();
-                    for (;;)
+                    
+                    while(true)
                     {
                         capture >> frame;
                         if (frame.empty())
                             break;
 
                         detectAndDraw(frame, cascade, scale, flag);
+                        
                         relogio_end = clock();
-                
+
                         if ((double)(relogio_end - relogio_init) /divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
                         {
                             cv::putText(frame, //target image
@@ -150,7 +151,7 @@ int main() {
                             }
                         }
 
-                        char c = (char)waitKey(10);
+                        char c = (char)waitKey(5);
                         if (c == 27 || c == 'q' || c == 'Q')
                             break;
                     }
