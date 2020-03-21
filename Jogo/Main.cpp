@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <Windows.h> //Função de tocar os sons no Windows
 #include <stdlib.h>
 #include <time.h>
@@ -31,7 +33,95 @@ string cascadeName;
 void detectAndDraw(Mat& img, player& cascade,
 	double scale, bool& foi);
 
+void adicionarPlacar(player& jogador) {
 
+    std::ifstream file1; //Abrir arquivo para leitura
+    std::vector<player> dados;
+    std::string name;
+    int i = 0;
+    int in = 0;
+    int placar = 0;
+    int maior = 0;
+    int maior_j = 0;
+
+    file1.open("Rank.txt");
+    if (!file1.is_open()) {
+        std::cout << "Nao foi possivel abrir o arquivo para leitura" << std::endl;
+        return;
+    }
+
+    while (1) { //Ler a lista completa dos jogadores do sistema
+
+        file1 >> in;
+        if (file1.eof() || file1.bad() || file1.fail())
+            break;
+
+        file1.ignore();
+
+        std::getline(file1, name);
+        dados.push_back(player(name));
+
+        file1 >> placar;
+        dados[i].setScore(placar);
+
+        file1.ignore();
+        file1.ignore(256, '\n'); //Ignorar a linha de separa��o no arquivo
+
+
+        i++;
+
+    }
+
+    dados.push_back(jogador); //Adicionar o jogador da vez
+
+    file1.close();
+
+
+    std::ofstream file2; //Abrir arquivo para escrita
+
+    file2.open("Rank.txt");
+    if (!file2.is_open()) {
+        std::cout << "Nao foi possivel abrir o arquivo para escrita" << std::endl;
+        return;
+    }
+
+    i = 0;
+
+    while (dados.size()) { //Sortear os jogadores da maior coloca��o para a menor, escrevendo no arquivo
+
+        for (int j = 0; j < dados.size(); j++) {
+
+            if (j == 0) {
+                maior = dados[0].getScore();
+                maior_j = 0;
+            }
+
+            if (dados[j].getScore() > maior) {
+
+                maior = dados[j].getScore();
+                maior_j = j;
+
+            }
+        }
+
+        file2 << i + 1 << std::endl;
+        file2 << dados[maior_j].getNome() << std::endl;
+        file2 << dados[maior_j].getScore() << std::endl;
+        file2 << "--------------------" << std::endl;
+
+        dados.erase(dados.begin() + maior_j);
+
+        i++;
+
+    }
+
+    file2.close();
+
+
+    return;
+
+
+}
 
 int main() {
 
@@ -105,7 +195,7 @@ int main() {
         }
     }
 
-
+	adicionarPlacar(cascade);
 
 	PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_SYNC); //Som ao fechar o programa
 
