@@ -1,14 +1,17 @@
+#include <iostream>
+#include <Windows.h> //Função de tocar os sons no Windows
+#include <stdlib.h>
+#include <time.h>
+#include <ctime> //Clock
+#include "Player.hpp" //Classe Player
+
 #include "opencv2/objdetect.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-#include <opencv2/opencv.hpp>
-#include "player.hpp"
-#include <fstream>
-#include <iostream>
-#include <stdlib.h>
-#include <time.h>
-#include <ctime>
+#include <opencv2\opencv.hpp>
+
+#pragma comment(lib, "Winmm.lib") //Linkar Winmm.lib para tocar os soms
 
 using namespace std;
 using namespace cv;
@@ -18,64 +21,35 @@ int vx1 = 0;
 int vx2 = 0;
 int vy1 = 0;
 int vy2 = 0;
-int dist = 160 / scale; //TAMANHO DO QUADRADO
-double Twidth = 638.0 / scale; //VALOR TOTAL DO COMPRIMENTO DA TELA
-double Theight = 479.0 / scale; //VALOR TOTAL DA ALTURA DA TELA
+int dist = 160 / scale; //Tamanho dos quadrados
+double Twidth = 638.0 / scale; //Valor total do comprimento da tela
+double Theight = 479.0 / scale; //Valor total da altura da tela
 double Dwidth = Twidth / 6.0;
+//double Dheight = Theight / 6.0;
 string cascadeName;
 
-void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi);
+void detectAndDraw(Mat& img, player& cascade,
+	double scale, bool& foi);
 
 
-/**
- * @brief Draws a transparent image over a frame Mat.
- *
- * @param frame the frame where the transparent image will be drawn
- * @param transp the Mat image with transparency, read from a PNG image, with the IMREAD_UNCHANGED flag
- * @param xPos x position of the frame image where the image will start.
- * @param yPos y position of the frame image where the image will start.
- */
-void drawTransparency(Mat frame, Mat transp, int xPos, int yPos) {
-    Mat mask;
-    vector<Mat> layers;
 
-    split(transp, layers); // seperate channels
-    Mat rgb[3] = { layers[0],layers[1],layers[2] };
-    mask = layers[3]; // png's alpha channel used as mask
-    merge(rgb, 3, transp);  // put together the RGB channels, now transp insn't transparent 
-    transp.copyTo(frame.rowRange(yPos, yPos + transp.rows).colRange(xPos, xPos + transp.cols), mask);
-}
+int main() {
 
-void drawTransparency2(Mat frame, Mat transp, int xPos, int yPos) {
-    Mat mask;
-    vector<Mat> layers;
-
-    split(transp, layers); // seperate channels
-    Mat rgb[3] = { layers[0],layers[1],layers[2] };
-    mask = layers[3]; // png's alpha channel used as mask
-    merge(rgb, 3, transp);  // put together the RGB channels, now transp insn't transparent 
-    Mat roi1 = frame(Rect(xPos, yPos, transp.cols, transp.rows));
-    Mat roi2 = roi1.clone();
-    transp.copyTo(roi2.rowRange(0, transp.rows).colRange(0, transp.cols), mask);
-    printf("%p, %p\n", roi1.data, roi2.data);
-    double alpha = 0.9;
-    addWeighted(roi2, alpha, roi1, 1.0 - alpha, 0.0, roi1);
-}
-
-
-int main(int argc, const char** argv)
-{
     VideoCapture capture;
     Mat frame, image;
     string inputName;
-    player cascade = player("Alguém");
+    //CascadeClassifier cascade, nestedCascade;
+
+    player cascade = player("Alguém"); //Objeto de Player que herda de CascadeClassifier
     clock_t relogio_init, relogio_end;
-    
+
     srand(time(NULL));
     bool flag = true;
-   
-    string folder = "/home/andre/Downloads/opencv-4.1.2/data/haarcascades/";
+
+
+    string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
     cascadeName = folder + "haarcascade_frontalface_alt.xml";
+
 
     if (!cascade.load(samples::findFile(cascadeName)))
     {
@@ -94,41 +68,53 @@ int main(int argc, const char** argv)
         cout << "Video capturing has been started ..." << endl;
 
         relogio_init = clock();
+        PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som para o início do jogo
+
         for (;;)
         {
             capture >> frame;
             if (frame.empty())
                 break;
+
             detectAndDraw(frame, cascade, scale, flag);
             relogio_end = clock();
-            if ((double)(relogio_end - relogio_init)/1000000.0 >= 120)
+      
+            if ((double)(relogio_end - relogio_init) / 1000.0 >= 20) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
             {
                 cv::putText(frame, //target image
-                "Fim de Jogo! Pressione 'q' para sair...", //text
-                cv::Point(270, 25), //top-left position
-                cv::FONT_HERSHEY_DUPLEX,
-                0.5,
-                CV_RGB(255, 0, 0), //font color
-                2);
+                    "Fim de Jogo! Pressione 'q' para sair...", //text
+                    cv::Point(270, 25), //top-left position
+                    cv::FONT_HERSHEY_DUPLEX,
+                    0.5,
+                    CV_RGB(255, 0, 0), //font color
+                    2);
                 imshow("result", frame);
 
+                PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som após fim de jogo
+
                 cout << "Score: " << cascade.getScore() << endl;
+
                 char k = (char)waitKey(0);
-                if(k == 27 || k == 'q' || k == 'Q')
+                if (k == 27 || k == 'q' || k == 'Q')
                     break;
             }
-            
+
             char c = (char)waitKey(10);
             if (c == 27 || c == 'q' || c == 'Q')
                 break;
         }
     }
 
-    return 0;
+
+
+	PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_SYNC); //Som ao fechar o programa
+
+	return 0;
 }
 
 void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
 {
+
     static int frames = 0;
     double t = 0;
     vector<Rect> faces, faces2;
@@ -159,12 +145,16 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
         | CASCADE_SCALE_IMAGE,
         Size(30, 30));
 
-    
+    //frames++;
+    //if (frames % 30 == 0)
+        //system("mplayer /usr/lib/libreoffice/share/gallery/sounds/kling.wav &");
+
     t = (double)getTickCount() - t;
+    //    printf( "detection time = %g ms\n", t*1000/getTickFrequency());
 
-    Scalar cor = colors[6];
+    Scalar cor = colors[1];
 
-    if (foi == true) {
+    if (foi == true) { //Achar uma posição aleatória para os quadrados
 
         vx1 = rand() % (((int)Twidth - (int)Dwidth - dist) - (int)Dwidth) + (int)Dwidth;
         vx2 = vx1 + dist;
@@ -172,10 +162,10 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
         vy2 = vy1 + dist;
 
     }
-    rectangle(img, Point((vx1 * scale), vy1 * scale),
+    rectangle(img, Point((vx1 * scale), vy1 * scale), //Desenhar os quadrados
         Point((vx2 - 1) * scale, (vy2 - 1) * scale),
         cor, 3, 8, 0);
-    
+
     foi = false;
 
     for (size_t i = 0; i < faces.size(); i++)
@@ -187,20 +177,29 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
         int radius;
 
 
-        if (r.x >= vx1 && (r.x + r.width - 1) <= vx2) { //DENTRO DO QUADRADO DESENHADO
-            cout << "Conseguiu!" <<endl;
+        if (r.x >= vx1 && (r.x + r.width - 1) <= vx2) { //Detectar dentro do quadrado desenhado
+            
+
+            //printf("[%3d, %3d]  -  [%3d, %3d]\n", r.x, r.y, r.x + r.width - 1, r.y + r.height - 1);
+            cout << "Conseguiu!" << endl;
+
+            PlaySound(TEXT("Efeitos\\sons_bubble.wav"), NULL, SND_FILENAME | SND_ASYNC); //Efeito sonoro ao acertar o quadrado
+  
+            cascade.incrementaScore();
 
             foi = true;
-            cascade.incrementaScore();
         }
         else {
 
             foi = false;
         }
-        
+
+
         
     }
-    score = "Score: "+to_string(cascade.getScore());
+
+    score = "Score: " + to_string(cascade.getScore());
+
     cv::putText(img, //target image
         score, //text
         cv::Point(25, 25), //top-left position
@@ -212,3 +211,4 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
     imshow("result", img);
 
 }
+
