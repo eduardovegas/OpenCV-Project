@@ -1,17 +1,18 @@
 #include <iostream>
 #include <fstream>
-#include <Windows.h>
+//#include <Windows.h>
 #include <string>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <ctime> //Clock
-#include "Player.hpp" //Classe Player
+#include "player.hpp" //Classe Player
 
 #include "opencv2/objdetect.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-#include <opencv2\opencv.hpp>
+//#include <opencv2\opencv.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
         string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
@@ -49,6 +50,7 @@ string cascadeName;
 }*/
 
 void menu_inicial(Mat frame, double scale);
+void pegar_sigla(Mat frame, char sigla[3], string nome[3]);
 void adicionarPlacar(player& jogador);
 void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi);
 
@@ -58,7 +60,9 @@ int main() {
     VideoCapture capture;
     Mat frame, image;
     string inputName;
-    string nome;
+    string nome[3];
+    char sigla[3];
+    char init;
 
     player cascade = player("Alguem"); //Objeto de Player que herda de CascadeClassifier
     clock_t relogio_init, relogio_end;
@@ -99,12 +103,18 @@ int main() {
             switch (opcao)
             {
                 case 'j':
-                    
-                    cout << "DIGITE O NOME DO JOGADOR: " << endl;
-                    getline(cin, nome);
-                    cascade.setNome(nome);
+                    capture >> frame;
+                    if (frame.empty())
+                        break;
 
-                    PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar o jogo
+                    pegar_sigla(frame, sigla, nome);
+                    
+                    cascade.setNome(nome[0]+nome[1]+nome[2]);
+                    cout << cascade.getNome() <<endl;
+                    
+                    init = (char)waitKey(0);
+
+                    //PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar o jogo
                     
                     relogio_init = clock();
                     for (;;)
@@ -127,7 +137,7 @@ int main() {
                                 2);
                             imshow("result", frame);
 
-                            PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_ASYNC);
+                            //PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_ASYNC);
 
                             cout << "Jogador: " << cascade.getNome() << endl;
                             cout << "Score: " << cascade.getScore() << endl;
@@ -149,7 +159,7 @@ int main() {
 
                 case 's':
 
-                    PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_SYNC);
+                    //PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_SYNC);
                     menu = false;
                     break;
 
@@ -199,6 +209,56 @@ void menu_inicial(Mat frame, double scale)
             CV_RGB(255, 0, 0), //font color
             2);
     }
+    imshow("result", frame);
+}
+
+void pegar_sigla(Mat frame, char sigla[3], string nome[3])
+{
+    cv::putText(frame, //target image
+        "DIGITE SUA SIGLA:", //text
+        cv::Point(35, 50), //top-left position
+        cv::FONT_HERSHEY_DUPLEX,
+        2.0,
+        CV_RGB(255, 0, 0), //font color
+        2);
+    imshow("result", frame);
+    sigla[0] = (char)waitKey(0);
+    nome[0] = sigla[0];
+    cv::putText(frame, //target image
+        nome[0], //text
+        cv::Point(260, 190), //top-left position
+        cv::FONT_HERSHEY_DUPLEX,
+        2.0,
+        CV_RGB(255, 0, 0), //font color
+        2);
+    imshow("result", frame);
+    sigla[1] = (char) waitKey(0);
+    nome[1] = sigla[1];
+    cv::putText(frame, //target image
+        nome[1], //text
+        cv::Point(300, 190), //top-left position
+        cv::FONT_HERSHEY_DUPLEX,
+        2.0,
+        CV_RGB(255, 0, 0), //font color
+        2);
+    imshow("result", frame);
+    sigla[2] = (char)waitKey(0);
+    nome[2] = sigla[2];
+    cv::putText(frame, //target image
+        nome[2], //text
+        cv::Point(340, 190), //top-left position
+        cv::FONT_HERSHEY_DUPLEX,
+        2.0,
+        CV_RGB(255, 0, 0), //font color
+        2);
+    imshow("result", frame);
+    cv::putText(frame, //target image
+        "Pressione 'i' para iniciar...", //text
+        cv::Point(100, 430), //top-left position
+        cv::FONT_HERSHEY_DUPLEX,
+        1.0,
+        CV_RGB(255, 0, 0), //font color
+        2);
     imshow("result", frame);
 }
 
@@ -359,7 +419,7 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
 
             cout << "Conseguiu!" << endl;
 
-            PlaySound(TEXT("Efeitos\\sons_bubble.wav"), NULL, SND_FILENAME | SND_SYNC);
+            //PlaySound(TEXT("Efeitos\\sons_bubble.wav"), NULL, SND_FILENAME | SND_SYNC);
   
             cascade.incrementaScore();
   
