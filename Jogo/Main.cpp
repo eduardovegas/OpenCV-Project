@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ctime> //Clock
-#include "Player.hpp" //Classe Player
+#include "player.hpp" //Classe Player
 
 #include "opencv2/objdetect.hpp"
 #include "opencv2/highgui.hpp"
