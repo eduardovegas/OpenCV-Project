@@ -116,7 +116,7 @@ int main() {
                     //PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar o jogo
                     
                     relogio_init = clock();
-                    
+
                     while(true)
                     {
                         capture >> frame;
@@ -127,7 +127,9 @@ int main() {
                         
                         relogio_end = clock();
 
-                        if ((double)(relogio_end - relogio_init) /divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
+                        cout << (relogio_end - relogio_init) /divisao << endl;
+
+                        if ((relogio_end - relogio_init) /divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
                         {
                             cv::putText(frame, //target image
                                 "Fim de Jogo! Pressione 'q' para sair e salvar o placar...", //text
