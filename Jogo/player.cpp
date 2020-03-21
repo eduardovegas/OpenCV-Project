@@ -1,5 +1,10 @@
 #include "player.hpp"
 
+player::player()
+{
+    nome = "";
+    score = 0;
+}
 player::player(string nome)
 {
     this->nome = nome;
@@ -16,4 +21,12 @@ void player::incrementaScore()
 int player::getScore()
 {
     return score;
+}
+void player::setNome(string nome)
+{
+    this->nome = nome;
+}
+void player::setScore(int score)
+{
+    this->score = score;
 }

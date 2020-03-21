@@ -1,17 +1,38 @@
 #include <iostream>
-#include <Windows.h> //Função de tocar os sons no Windows
+#include <vector>
+#include <fstream>
+#include <string>
 #include <stdlib.h>
 #include <time.h>
 #include <ctime> //Clock
 #include "player.hpp" //Classe Player
-
 #include "opencv2/objdetect.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-#include <opencv2\opencv.hpp>
+
+#if defined(_WIN32) || defined(_WIN64)
+        #include <opencv2\opencv.hpp>
+        #include <Windows.h>//Função de tocar os sons no Windows
+        string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
+        double divisao = 1000.0;
+    #else defined(__linux__) || defined(__unix__)
+        #include <opencv2/opencv.hpp>
+        string folder = "/home/andre/Downloads/opencv-4.1.2/data/haarcascades/";
+        double divisao = 1000000.0;
+    #endif
 
 #pragma comment(lib, "Winmm.lib") //Linkar Winmm.lib para tocar os soms
+
+void tocarSom(string path)
+{
+    #if defined(_WIN32) || defined(_WIN64)
+            PlaySound(TEXT(path), NULL, SND_FILENAME | SND_ASYNC); //Som para o início do jogo
+        #else defined(__linux__) || defined(__unix__)
+
+        #endif
+}
+
 
 using namespace std;
 using namespace cv;
@@ -25,29 +46,26 @@ int dist = 160 / scale; //Tamanho dos quadrados
 double Twidth = 638.0 / scale; //Valor total do comprimento da tela
 double Theight = 479.0 / scale; //Valor total da altura da tela
 double Dwidth = Twidth / 6.0;
-//double Dheight = Theight / 6.0;
 string cascadeName;
 
-void detectAndDraw(Mat& img, player& cascade,
-	double scale, bool& foi);
+void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi);
 
+void adicionarPlacar(player& jogador);
 
+void menu_inicial(Mat frame, double scale);
 
 int main() {
 
     VideoCapture capture;
     Mat frame, image;
+    bool menu=true;
     string inputName;
-    //CascadeClassifier cascade, nestedCascade;
-
     player cascade = player("Alguém"); //Objeto de Player que herda de CascadeClassifier
     clock_t relogio_init, relogio_end;
 
     srand(time(NULL));
     bool flag = true;
 
-
-    string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
     cascadeName = folder + "haarcascade_frontalface_alt.xml";
 
 
@@ -67,47 +85,62 @@ int main() {
     {
         cout << "Video capturing has been started ..." << endl;
 
-        relogio_init = clock();
-        PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som para o início do jogo
 
-        for (;;)
+        while (menu)
         {
             capture >> frame;
             if (frame.empty())
                 break;
-
-            detectAndDraw(frame, cascade, scale, flag);
-            relogio_end = clock();
-      
-            if ((double)(relogio_end - relogio_init) / 1000.0 >= 20) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
+            menu_inicial(frame, scale);
+            relogio_init = clock();
+            tocarSom("Efeitos\\sons_endgame.wav");
+            char opcao = (char)waitKey(10);
+            switch (opcao)
             {
-                cv::putText(frame, //target image
-                    "Fim de Jogo! Pressione 'q' para sair...", //text
-                    cv::Point(270, 25), //top-left position
-                    cv::FONT_HERSHEY_DUPLEX,
-                    0.5,
-                    CV_RGB(255, 0, 0), //font color
-                    2);
-                imshow("result", frame);
+            case 'j':
+                for (;;)
+                {
+                    capture >> frame;
+                    if (frame.empty())
+                        break;
+                    detectAndDraw(frame, cascade, scale, flag);
+                    relogio_end = clock();
+            
+                    if ((double)(relogio_end - relogio_init) /divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
+                    {
+                        cv::putText(frame, //target image
+                            "Fim de Jogo! Pressione 'q' para sair...", //text
+                            cv::Point(270, 25), //top-left position
+                            cv::FONT_HERSHEY_DUPLEX,
+                            0.5,
+                            CV_RGB(255, 0, 0), //font color
+                            2);
+                        imshow("result", frame);
 
-                PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som após fim de jogo
+                        tocarSom("Efeitos\\sons_endgame.wav");
 
-                cout << "Score: " << cascade.getScore() << endl;
+                        cout << "Score: " << cascade.getScore() << endl;
 
-                char k = (char)waitKey(0);
-                if (k == 27 || k == 'q' || k == 'Q')
-                    break;
-            }
+                        char k = (char)waitKey(0);
+                        if (k == 27 || k == 'q' || k == 'Q')
+                            break;
+                    }
 
-            char c = (char)waitKey(10);
-            if (c == 27 || c == 'q' || c == 'Q')
+                    char c = (char)waitKey(10);
+                    if (c == 27 || c == 'q' || c == 'Q')
+                        break;
+                }
                 break;
+            
+            default:
+                break;
+            }
         }
     }
 
+	adicionarPlacar(cascade);
 
-
-	PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_SYNC); //Som ao fechar o programa
+	tocarSom("Efeitos\\sons_endgame.wav");
 
 	return 0;
 }
@@ -145,14 +178,9 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
         | CASCADE_SCALE_IMAGE,
         Size(30, 30));
 
-    //frames++;
-    //if (frames % 30 == 0)
-        //system("mplayer /usr/lib/libreoffice/share/gallery/sounds/kling.wav &");
-
     t = (double)getTickCount() - t;
-    //    printf( "detection time = %g ms\n", t*1000/getTickFrequency());
 
-    Scalar cor = colors[1];
+    Scalar cor = colors[6];
 
     if (foi == true) { //Achar uma posição aleatória para os quadrados
 
@@ -179,11 +207,9 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
 
         if (r.x >= vx1 && (r.x + r.width - 1) <= vx2) { //Detectar dentro do quadrado desenhado
             
-
-            //printf("[%3d, %3d]  -  [%3d, %3d]\n", r.x, r.y, r.x + r.width - 1, r.y + r.height - 1);
             cout << "Conseguiu!" << endl;
 
-            PlaySound(TEXT("Efeitos\\sons_bubble.wav"), NULL, SND_FILENAME | SND_ASYNC); //Efeito sonoro ao acertar o quadrado
+            tocarSom("Efeitos\\sons_endgame.wav");
   
             cascade.incrementaScore();
 
@@ -212,3 +238,124 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
 
 }
 
+void adicionarPlacar(player& jogador)
+{
+    ifstream file1; //Abrir arquivo para leitura
+    vector<player> dados;
+    string name;
+    int i = 0;
+    int in = 0;
+    int placar = 0;
+    int maior = 0;
+    int maior_j = 0;
+
+    file1.open("Rank.txt");
+    if (!file1.is_open()) {
+        std::cout << "Nao foi possivel abrir o arquivo para leitura" << std::endl;
+        return;
+    }
+
+    while (1) { //Ler a lista completa dos jogadores do sistema
+
+        file1 >> in;
+        if (file1.eof() || file1.bad() || file1.fail())
+            break;
+
+        file1.ignore();
+
+        std::getline(file1, name);
+        dados.push_back(player(name));
+
+        file1 >> placar;
+        dados[i].setScore(placar);
+
+        file1.ignore();
+        file1.ignore(256, '\n'); //Ignorar a linha de separa��o no arquivo
+
+
+        i++;
+
+    }
+
+    dados.push_back(jogador); //Adicionar o jogador da vez
+
+    file1.close();
+
+
+    ofstream file2; //Abrir arquivo para escrita
+
+    file2.open("Rank.txt");
+    if (!file2.is_open()) {
+        std::cout << "Nao foi possivel abrir o arquivo para escrita" << std::endl;
+        return;
+    }
+
+    i = 0;
+
+    while (dados.size()) { //Sortear os jogadores da maior coloca��o para a menor, escrevendo no arquivo
+
+        for (int j = 0; j < dados.size(); j++) {
+
+            if (j == 0) {
+                maior = dados[0].getScore();
+                maior_j = 0;
+            }
+
+            if (dados[j].getScore() > maior) {
+
+                maior = dados[j].getScore();
+                maior_j = j;
+
+            }
+        }
+
+        file2 << i + 1 << std::endl;
+        file2 << dados[maior_j].getNome() << std::endl;
+        file2 << dados[maior_j].getScore() << std::endl;
+        file2 << "--------------------" << std::endl;
+
+        dados.erase(dados.begin() + maior_j);
+
+        i++;
+
+    }
+
+    file2.close();
+
+    return;
+}
+
+void menu_inicial(Mat frame, double scale)
+{
+    Mat gray, smallImg;
+
+    cvtColor(frame, gray, COLOR_BGR2GRAY);
+    double fx = 1 / scale;
+    resize(gray, smallImg, Size(), fx, fx, INTER_LINEAR_EXACT);
+    equalizeHist(smallImg, smallImg);
+
+    cv::putText(frame, //target image
+            "Put Your Face!", //text
+            cv::Point(95, 50), //top-left position
+            cv::FONT_HERSHEY_DUPLEX,
+            2.0,
+            CV_RGB(255, 0, 0), //font color
+            2);
+
+
+    string menuzim[3];
+    menuzim[0] ="j - Jogar";
+    menuzim[1] = "r - Recordes";
+    menuzim[2] = "c - Criadores";
+    for(int i = 0; i<3; i++)
+    {
+        cv::putText(frame, //target image
+            menuzim[i], //text
+            cv::Point(235, 130 + 50*i), //top-left position
+            cv::FONT_HERSHEY_DUPLEX,
+            1.0,
+            CV_RGB(255, 0, 0), //font color
+            2);
+    }
+    imshow("result", frame);
+}
