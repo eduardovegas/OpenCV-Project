@@ -48,6 +48,15 @@ string cascadeName;
         #endif
 }*/
 
+void limpa_tela()
+{
+    #if defined(_WIN32) || defined(_WIN64)
+        system("cls");
+    #else defined(__linux__) || defined(__unix__)
+        system("clear");
+    #endif
+}
+
 void menu_inicial(Mat frame, double scale);
 void pegar_sigla(Mat frame, char sigla[3], string nome[3]);
 void adicionarPlacar(player& jogador);
