@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <Windows.h>
+//#include <Windows.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
