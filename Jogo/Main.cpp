@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-//#include <Windows.h>
+#include <Windows.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
@@ -14,13 +14,13 @@
 //#include <opencv2\opencv.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
-        string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
-        double divisao = 1000.0;
-    #else defined(__linux__) || defined(__unix__)
-        #include <opencv2/opencv.hpp>
-        string folder = "/home/andre/Downloads/opencv-4.1.2/data/haarcascades/";
-        double divisao = 1000000.0;
-    #endif
+    string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
+    double divisao = 1000.0;
+#else defined(__linux__) || defined(__unix__)
+    #include <opencv2/opencv.hpp>
+    string folder = "/home/andre/Downloads/opencv-4.1.2/data/haarcascades/";
+    double divisao = 1000000.0;
+#endif
 
 #pragma comment(lib, "Winmm.lib") //Linkar Winmm.lib para tocar os soms
 
@@ -44,7 +44,6 @@ string cascadeName;
     #if defined(_WIN32) || defined(_WIN64)
             PlaySound(TEXT(path), NULL, SND_FILENAME | SND_ASYNC); //Som para o início do jogo
         #else defined(__linux__) || defined(__unix__)
-
         #endif
 }*/
 
@@ -98,94 +97,94 @@ int main() {
     {
         cout << "Video capturing has been started ..." << endl;
 
-        while(menu){
-            
+        while (menu) {
+
             capture >> frame;
             if (frame.empty())
                 break;
 
             menu_inicial(frame, scale);
-            
+
             char opcao = (char)waitKey(10);
-            
+
             switch (opcao)
             {
-                case 'j':
+            case 'j':
+                capture >> frame;
+                if (frame.empty())
+                    break;
+
+                pegar_sigla(frame, sigla, nome);
+
+                cascade.setNome(nome[0] + nome[1] + nome[2]);
+                cout << cascade.getNome() << endl;
+
+                init = (char)waitKey(0);
+
+                //PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar o jogo
+
+                relogio_init = clock();
+
+                while (true)
+                {
                     capture >> frame;
                     if (frame.empty())
                         break;
 
-                    pegar_sigla(frame, sigla, nome);
+                    detectAndDraw(frame, cascade, scale, flag);
 
-                    cascade.setNome(nome[0]+nome[1]+nome[2]);
-                    cout << cascade.getNome() <<endl;
-                    
-                    init = (char)waitKey(0);
+                    relogio_end = clock();
 
-                    //PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar o jogo
-                    
-                    relogio_init = clock();
+                    //cout << (double)(relogio_end - relogio_init) / divisao << endl;
 
-                    while(true)
+                    if ((double)(relogio_end - relogio_init) / divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
                     {
-                        capture >> frame;
-                        if (frame.empty())
+                        cv::putText(frame, //target image
+                            "Fim de Jogo! Pressione 'q' para sair e salvar o placar...", //text
+                            cv::Point(43, 435), //top-left position
+                            cv::FONT_HERSHEY_DUPLEX,
+                            0.6,
+                            CV_RGB(255, 0, 0), //font color
+                            2);
+                        imshow("result", frame);
+
+                        //PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_ASYNC);
+
+                        cout << "Jogador: " << cascade.getNome() << endl;
+                        cout << "Score: " << cascade.getScore() << endl;
+
+                        char k = (char)waitKey(0);
+                        if (k == 27 || k == 'q' || k == 'Q') {
+                            adicionarPlacar(cascade);
+                            cascade.setScore(0);
                             break;
-
-                        detectAndDraw(frame, cascade, scale, flag);
-                        
-                        relogio_end = clock();
-
-                        cout << (relogio_end - relogio_init) /divisao << endl;
-
-                        if ((relogio_end - relogio_init) /divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
-                        {
-                            cv::putText(frame, //target image
-                                "Fim de Jogo! Pressione 'q' para sair e salvar o placar...", //text
-                                cv::Point(43, 435), //top-left position
-                                cv::FONT_HERSHEY_DUPLEX,
-                                0.6,
-                                CV_RGB(255, 0, 0), //font color
-                                2);
-                            imshow("result", frame);
-
-                            //PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_ASYNC);
-
-                            cout << "Jogador: " << cascade.getNome() << endl;
-                            cout << "Score: " << cascade.getScore() << endl;
-
-                            char k = (char)waitKey(0);
-                            if (k == 27 || k == 'q' || k == 'Q') {
-                                adicionarPlacar(cascade);
-                                cascade.setScore(0);
-                                break;
-                            }
                         }
-
-                        char c = (char)waitKey(5);
-                        if (c == 27 || c == 'q' || c == 'Q')
-                            break;
                     }
 
-                    break;
+                    char c = (char)waitKey(5);
+                    if (c == 27 || c == 'q' || c == 'Q')
+                        break;
+                }
 
-                case 's':
+                break;
 
-                    //PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_SYNC);
-                    menu = false;
-                    break;
+            case 's':
 
-                default:
+                //PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_SYNC);
+                menu = false;
+                break;
 
-                    break;
+            default:
+
+                break;
             }
         }
     }
 
-	//PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_SYNC); //Som ao fechar o programa
+    //PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_SYNC); //Som ao fechar o programa
 
 
-	return 0;
+    return 0;
 }
 
 void menu_inicial(Mat frame, double scale)
@@ -198,78 +197,95 @@ void menu_inicial(Mat frame, double scale)
     equalizeHist(smallImg, smallImg);
 
     cv::putText(frame, //target image
-            "Put Your Face!", //text
-            cv::Point(90, 60), //top-left position
-            cv::FONT_HERSHEY_DUPLEX,
-            2.0,
-            CV_RGB(255, 0, 0), //font color
-            2);
+        "Put Your Face!", //text
+        cv::Point(80, 75), //top-left position
+        cv::FONT_HERSHEY_DUPLEX,
+        2.0,
+        CV_RGB(255, 0, 0), //font color
+        2);
 
 
     string menuzim[4];
-    menuzim[0] ="j - Jogar";
+    menuzim[0] = "j - Jogar";
     menuzim[1] = "r - Recordes";
     menuzim[2] = "c - Criadores";
     menuzim[3] = "s - Sair";
-    for(int i = 0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
         cv::putText(frame, //target image
             menuzim[i], //text
-            cv::Point(230, 140 + 50*i), //top-left position
+            cv::Point(230, 160 + 65 * i), //top-left position
             cv::FONT_HERSHEY_DUPLEX,
             1.0,
-            CV_RGB(255, 0, 0), //font color
+            CV_RGB(255, 128, 0), //font color
             2);
     }
     imshow("result", frame);
+    /*Scalar(255,0,0),
+        Scalar(255,128,0),--
+        Scalar(255,255,0),-
+        Scalar(0,255,0), 0
+        Scalar(0,128,255), 0
+        Scalar(0,255,255), 0
+        Scalar(0,0,255), 0
+        Scalar(255,0,255)*/
 }
 
 void pegar_sigla(Mat frame, char sigla[3], string nome[3])
 {
+
     cv::putText(frame, //target image
-        "DIGITE SUA SIGLA:", //text
-        cv::Point(35, 50), //top-left position
+        "Put Your Face!", //text
+        cv::Point(80, 75), //top-left position
         cv::FONT_HERSHEY_DUPLEX,
         2.0,
         CV_RGB(255, 0, 0), //font color
+        2);
+
+    cv::putText(frame, //target image
+        "Digite sua sigla:", //text
+        cv::Point(145, 165), //top-left position
+        cv::FONT_HERSHEY_DUPLEX,
+        1.3,
+        CV_RGB(255, 128, 0), //font color
         2);
     imshow("result", frame);
     sigla[0] = (char)waitKey(0);
     nome[0] = sigla[0];
     cv::putText(frame, //target image
         nome[0], //text
-        cv::Point(260, 190), //top-left position
+        cv::Point(260, 295), //top-left position
         cv::FONT_HERSHEY_DUPLEX,
-        2.0,
-        CV_RGB(255, 0, 0), //font color
+        1.8,
+        CV_RGB(255, 255, 0), //font color
         2);
     imshow("result", frame);
-    sigla[1] = (char) waitKey(0);
+    sigla[1] = (char)waitKey(0);
     nome[1] = sigla[1];
     cv::putText(frame, //target image
         nome[1], //text
-        cv::Point(300, 190), //top-left position
+        cv::Point(300, 295), //top-left position
         cv::FONT_HERSHEY_DUPLEX,
-        2.0,
-        CV_RGB(255, 0, 0), //font color
+        1.8,
+        CV_RGB(255, 255, 0), //font color
         2);
     imshow("result", frame);
     sigla[2] = (char)waitKey(0);
     nome[2] = sigla[2];
     cv::putText(frame, //target image
         nome[2], //text
-        cv::Point(340, 190), //top-left position
+        cv::Point(340, 295), //top-left position
         cv::FONT_HERSHEY_DUPLEX,
-        2.0,
-        CV_RGB(255, 0, 0), //font color
+        1.8,
+        CV_RGB(255, 255, 0), //font color
         2);
     imshow("result", frame);
     cv::putText(frame, //target image
-        "Pressione 'i' para iniciar...", //text
-        cv::Point(100, 430), //top-left position
+        "Pressione 'j' para iniciar...", //text
+        cv::Point(100, 440), //top-left position
         cv::FONT_HERSHEY_DUPLEX,
         1.0,
-        CV_RGB(255, 0, 0), //font color
+        CV_RGB(255, 128, 0), //font color
         2);
     imshow("result", frame);
 }
@@ -306,7 +322,7 @@ void adicionarPlacar(player& jogador) {
         dados[i].setScore(placar);
 
         file1.ignore();
-        file1.ignore(256, '\n'); //Ignorar a linha de separa��o no arquivo
+        file1.ignore(256, '\n'); //Ignorar a linha de separacao no arquivo
 
 
         i++;
@@ -328,7 +344,7 @@ void adicionarPlacar(player& jogador) {
 
     i = 0;
 
-    while (dados.size()) { //Sortear os jogadores da maior coloca��o para a menor, escrevendo no arquivo
+    while (dados.size()) { //Sortear os jogadores da maior colocacao para a menor, escrevendo no arquivo
 
         for (int j = 0; j < dados.size(); j++) {
 
@@ -425,16 +441,14 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
 
 
         if ((r.x >= vx1 && (r.x + r.width - 1) <= vx2) && (r.y >= vy1 && (r.y + r.height - 1) <= vy2)) { //Detectar dentro do quadrado desenhado
-            
+
 
             //printf("[%3d, %3d]  -  [%3d, %3d]\n", r.x, r.y, r.x + r.width - 1, r.y + r.height - 1);
 
             cout << "Conseguiu!" << endl;
 
             //PlaySound(TEXT("Efeitos\\sons_bubble.wav"), NULL, SND_FILENAME | SND_SYNC);
-  
-            cascade.incrementaScore();
-  
+
             cascade.incrementaScore();
 
             foi = true;
@@ -445,7 +459,7 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
         }
 
 
-        
+
     }
 
     score = "Score: " + to_string(cascade.getScore());
@@ -461,4 +475,3 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
     imshow("result", img);
 
 }
-
