@@ -58,7 +58,9 @@ void limpa_tela()
 
 void menu_inicial(Mat frame, double scale);
 void pegar_sigla(Mat frame, char sigla[3], string nome[3]);
-void adicionarPlacar(player& jogador);
+void lerArquivo(vector<player>& dados);
+void adicionarPlacar(vector<player>& dados, player& jogador);
+void salvarArquivo(vector<player>& dados);
 void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi);
 
 
@@ -71,7 +73,8 @@ int main() {
     char sigla[3];
     char init;
 
-    player cascade = player("Alguem"); //Objeto de Player que herda de CascadeClassifier
+    std::vector<player> dados;
+    player cascade = player("jaozin"); //Objeto de Player que herda de CascadeClassifier
     clock_t relogio_init, relogio_end;
 
     srand(time(NULL));
@@ -96,6 +99,8 @@ int main() {
     if (capture.isOpened())
     {
         cout << "Video capturing has been started ..." << endl;
+
+        lerArquivo(dados);
 
         while (menu) {
 
@@ -140,10 +145,17 @@ int main() {
                     if ((double)(relogio_end - relogio_init) / divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
                     {
                         cv::putText(frame, //target image
-                            "Fim de Jogo! Pressione 'q' para sair e salvar o placar...", //text
-                            cv::Point(43, 435), //top-left position
+                            "Fim de Jogo!", //text
+                            cv::Point(235, 410), //top-left position
                             cv::FONT_HERSHEY_DUPLEX,
-                            0.6,
+                            0.8,
+                            CV_RGB(255, 255, 0), //font color
+                            2);
+                        cv::putText(frame, //target image
+                            "Pressione 'q' para sair e salvar o placar...", //text
+                            cv::Point(75, 445), //top-left position
+                            cv::FONT_HERSHEY_DUPLEX,
+                            0.7,
                             CV_RGB(255, 0, 0), //font color
                             2);
                         imshow("result", frame);
@@ -155,7 +167,7 @@ int main() {
 
                         char k = (char)waitKey(0);
                         if (k == 27 || k == 'q' || k == 'Q') {
-                            adicionarPlacar(cascade);
+                            adicionarPlacar(dados, cascade);
                             cascade.setScore(0);
                             break;
                         }
@@ -171,6 +183,7 @@ int main() {
             case 's':
 
                 //PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_SYNC);
+                salvarArquivo(dados);
                 menu = false;
                 break;
 
@@ -290,16 +303,13 @@ void pegar_sigla(Mat frame, char sigla[3], string nome[3])
     imshow("result", frame);
 }
 
-void adicionarPlacar(player& jogador) {
+void lerArquivo(vector<player>& dados) {
 
     std::ifstream file1; //Abrir arquivo para leitura
-    std::vector<player> dados;
     std::string name;
     int i = 0;
     int in = 0;
     int placar = 0;
-    int maior = 0;
-    int maior_j = 0;
 
     file1.open("Rank.txt");
     if (!file1.is_open()) {
@@ -329,10 +339,40 @@ void adicionarPlacar(player& jogador) {
 
     }
 
-    dados.push_back(jogador); //Adicionar o jogador da vez
-
     file1.close();
 
+    return;
+
+
+}
+
+void adicionarPlacar(vector<player>& dados, player& jogador) {
+
+    int placar = 0;
+    int maior_j = -1;
+
+
+    for (int j = 0; j < dados.size(); j++) {
+
+        if (jogador.getScore() > dados[j].getScore()) {
+
+            maior_j = j;
+            break;
+
+        }
+
+    }
+
+    if(maior_j == -1)
+        dados.push_back(jogador); //Adicionar o jogador da vez
+    else
+        dados.insert(dados.begin() + maior_j, jogador); //Adicionar o jogador da vez
+
+    return;
+
+}
+
+void salvarArquivo(vector<player>& dados) {
 
     std::ofstream file2; //Abrir arquivo para escrita
 
@@ -342,41 +382,18 @@ void adicionarPlacar(player& jogador) {
         return;
     }
 
-    i = 0;
-
-    while (dados.size()) { //Sortear os jogadores da maior colocacao para a menor, escrevendo no arquivo
-
-        for (int j = 0; j < dados.size(); j++) {
-
-            if (j == 0) {
-                maior = dados[0].getScore();
-                maior_j = 0;
-            }
-
-            if (dados[j].getScore() > maior) {
-
-                maior = dados[j].getScore();
-                maior_j = j;
-
-            }
-        }
+    for (int i = 0; i < dados.size(); i++) {
 
         file2 << i + 1 << std::endl;
-        file2 << dados[maior_j].getNome() << std::endl;
-        file2 << dados[maior_j].getScore() << std::endl;
+        file2 << dados[i].getNome() << std::endl;
+        file2 << dados[i].getScore() << std::endl;
         file2 << "--------------------" << std::endl;
-
-        dados.erase(dados.begin() + maior_j);
-
-        i++;
 
     }
 
     file2.close();
 
-
     return;
-
 
 }
 
