@@ -68,6 +68,7 @@ int main() {
 
     VideoCapture capture;
     Mat frame, image;
+    string salvar;
     string inputName;
     string nome[3];
     char sigla[3];
@@ -122,6 +123,7 @@ int main() {
                 pegar_sigla(frame, sigla, nome);
 
                 cascade.setNome(nome[0] + nome[1] + nome[2]);
+                
                 cout << cascade.getNome() << endl;
 
                 init = (char)waitKey(0);
@@ -151,6 +153,9 @@ int main() {
                             0.8,
                             CV_RGB(255, 255, 0), //font color
                             2);
+                        imshow("result", frame);
+                        salvar = "Results/"+cascade.getNome()+".jpg";
+                        imwrite(salvar, frame);
                         cv::putText(frame, //target image
                             "Pressione 'q' para sair e salvar o placar...", //text
                             cv::Point(75, 445), //top-left position
@@ -311,7 +316,7 @@ void lerArquivo(vector<player>& dados) {
     int in = 0;
     int placar = 0;
 
-    file1.open("Rank.txt");
+    file1.open("Results/Rank.txt");
     if (!file1.is_open()) {
         std::cout << "Nao foi possivel abrir o arquivo para leitura" << std::endl;
         return;
@@ -376,7 +381,7 @@ void salvarArquivo(vector<player>& dados) {
 
     std::ofstream file2; //Abrir arquivo para escrita
 
-    file2.open("Rank.txt");
+    file2.open("Results/Rank.txt");
     if (!file2.is_open()) {
         std::cout << "Nao foi possivel abrir o arquivo para escrita" << std::endl;
         return;
