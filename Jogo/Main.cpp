@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <Windows.h>
+//#include <Windows.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
@@ -11,7 +11,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-#include <opencv2\opencv.hpp>
+//#include <opencv2\opencv.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
     string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
@@ -435,6 +435,14 @@ void exibir_placar(Mat frame, vector<player>& dados) {
         cv::FONT_HERSHEY_DUPLEX,
         1.0,
         CV_RGB(0, 255, 255),
+        2);
+
+    cv::putText(frame, 
+        "Pressione 'q' para voltar ao menu...", 
+        cv::Point(80, 447), 
+        cv::FONT_HERSHEY_DUPLEX,
+        0.8,
+        CV_RGB(255, 128, 0),
         2);
     imshow("result", frame);
 
