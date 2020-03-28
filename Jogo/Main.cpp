@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-//#include <Windows.h>
+#include <Windows.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
@@ -11,7 +11,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-//#include <opencv2\opencv.hpp>
+#include <opencv2\opencv.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
     string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
@@ -47,17 +47,10 @@ string cascadeName;
         #endif
 }*/
 
-void limpa_tela()
-{
-    #if defined(_WIN32) || defined(_WIN64)
-        system("cls");
-    #else defined(__linux__) || defined(__unix__)
-        system("clear");
-    #endif
-}
-
 void menu_inicial(Mat frame, double scale);
 void pegar_sigla(Mat frame, char sigla[3], string nome[3]);
+void exibir_fotos(vector<player>& dados);
+void exibir_placar(Mat frame, vector<player>& dados);
 void lerArquivo(vector<player>& dados);
 void adicionarPlacar(vector<player>& dados, player& jogador);
 void salvarArquivo(vector<player>& dados);
@@ -116,6 +109,7 @@ int main() {
             switch (opcao)
             {
             case 'j':
+
                 capture >> frame;
                 if (frame.empty())
                     break;
@@ -123,7 +117,7 @@ int main() {
                 pegar_sigla(frame, sigla, nome);
 
                 cascade.setNome(nome[0] + nome[1] + nome[2]);
-                
+
                 cout << cascade.getNome() << endl;
 
                 init = (char)waitKey(0);
@@ -144,24 +138,26 @@ int main() {
 
                     //cout << (double)(relogio_end - relogio_init) / divisao << endl;
 
-                    if ((double)(relogio_end - relogio_init) / divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
+                    if ((double)(relogio_end - relogio_init) / divisao >= 12) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
                     {
-                        cv::putText(frame, //target image
-                            "Fim de Jogo!", //text
-                            cv::Point(235, 410), //top-left position
+                        cv::putText(frame, 
+                            "Fim de Jogo!", 
+                            cv::Point(222, 405), 
                             cv::FONT_HERSHEY_DUPLEX,
-                            0.8,
-                            CV_RGB(255, 255, 0), //font color
+                            0.9,
+                            CV_RGB(255, 255, 0), 
                             2);
                         imshow("result", frame);
+
                         salvar = "Results/"+cascade.getNome()+".jpg";
-                        imwrite(salvar, frame);
-                        cv::putText(frame, //target image
-                            "Pressione 'q' para sair e salvar o placar...", //text
-                            cv::Point(75, 445), //top-left position
+                        imwrite(salvar, frame); //Salvar a foto de fim de jogo
+
+                        cv::putText(frame, 
+                            "Pressione 'q' para sair e salvar o placar...", 
+                            cv::Point(36, 447), 
                             cv::FONT_HERSHEY_DUPLEX,
-                            0.7,
-                            CV_RGB(255, 0, 0), //font color
+                            0.8,
+                            CV_RGB(255, 128, 0),
                             2);
                         imshow("result", frame);
 
@@ -182,6 +178,33 @@ int main() {
                     if (c == 27 || c == 'q' || c == 'Q')
                         break;
                 }
+
+                break;
+
+            case 'r':
+
+                capture >> frame;
+                if (frame.empty())
+                    break;
+
+                exibir_placar(frame, dados);
+
+                exibir_fotos(dados);
+
+                while (true)
+                {
+                    capture >> frame;
+                    if (frame.empty())
+                        break;
+
+                    exibir_placar(frame, dados);
+
+                    char n = (char)waitKey(5);
+                    if (n == 27 || n == 'q' || n == 'Q')
+                        break;
+
+                }
+
 
                 break;
 
@@ -252,60 +275,180 @@ void menu_inicial(Mat frame, double scale)
 void pegar_sigla(Mat frame, char sigla[3], string nome[3])
 {
 
-    cv::putText(frame, //target image
-        "Put Your Face!", //text
-        cv::Point(80, 75), //top-left position
+    cv::putText(frame, 
+        "Put Your Face!", 
+        cv::Point(80, 75), 
         cv::FONT_HERSHEY_DUPLEX,
         2.0,
-        CV_RGB(255, 0, 0), //font color
+        CV_RGB(255, 0, 0), 
         2);
-
-    cv::putText(frame, //target image
-        "Digite sua sigla:", //text
-        cv::Point(145, 165), //top-left position
+    cv::putText(frame, 
+        "Digite sua sigla:", 
+        cv::Point(145, 170), 
         cv::FONT_HERSHEY_DUPLEX,
         1.3,
-        CV_RGB(255, 128, 0), //font color
+        CV_RGB(255, 128, 0), 
         2);
     imshow("result", frame);
+
     sigla[0] = (char)waitKey(0);
     nome[0] = sigla[0];
-    cv::putText(frame, //target image
-        nome[0], //text
-        cv::Point(260, 295), //top-left position
+    cv::putText(frame, 
+        nome[0], 
+        cv::Point(260, 300), 
         cv::FONT_HERSHEY_DUPLEX,
         1.8,
-        CV_RGB(255, 255, 0), //font color
+        CV_RGB(255, 255, 0), 
         2);
     imshow("result", frame);
     sigla[1] = (char)waitKey(0);
     nome[1] = sigla[1];
-    cv::putText(frame, //target image
-        nome[1], //text
-        cv::Point(300, 295), //top-left position
+    cv::putText(frame, 
+        nome[1], 
+        cv::Point(300, 300), 
         cv::FONT_HERSHEY_DUPLEX,
         1.8,
-        CV_RGB(255, 255, 0), //font color
+        CV_RGB(255, 255, 0), 
         2);
     imshow("result", frame);
     sigla[2] = (char)waitKey(0);
     nome[2] = sigla[2];
-    cv::putText(frame, //target image
-        nome[2], //text
-        cv::Point(340, 295), //top-left position
+    cv::putText(frame, 
+        nome[2], 
+        cv::Point(340, 300), 
         cv::FONT_HERSHEY_DUPLEX,
         1.8,
-        CV_RGB(255, 255, 0), //font color
+        CV_RGB(255, 255, 0), 
         2);
     imshow("result", frame);
-    cv::putText(frame, //target image
-        "Pressione 'j' para iniciar...", //text
-        cv::Point(100, 440), //top-left position
+    
+    cv::putText(frame, 
+        "Pressione 'j' para iniciar...", 
+        cv::Point(100, 450), 
         cv::FONT_HERSHEY_DUPLEX,
         1.0,
-        CV_RGB(255, 128, 0), //font color
+        CV_RGB(255, 128, 0), 
         2);
     imshow("result", frame);
+}
+
+void exibir_fotos(vector<player>& dados) {
+
+    if (dados.size() < 3)
+        return;
+
+    string photo;
+    int wait_time = 1000;
+    const static Scalar colors[] =
+    {
+        Scalar(0,255,0), //VERDE EM SCALAR
+        Scalar(255, 128, 0), //AZUL EM SCALAR
+        Scalar(255,255,0), //AZUL CLARO EM SCALAR
+    };
+
+
+    for (int i = 0; i < 3; i++) { //"Results/" + dados[i].getNome() + ".jpg"
+
+        string nome = dados[i].getNome();
+
+        photo = "Results/" + nome + ".jpg";
+        Mat foto = imread(photo, -1); //FLAG UNCHANGED
+        cv::namedWindow(nome, WINDOW_FREERATIO);
+        //cv::namedWindow(dados[i].getNome(), WINDOW_AUTOSIZE);
+
+        cv::putText(foto,
+            nome,
+            cv::Point(550, 40),
+            cv::FONT_HERSHEY_DUPLEX,
+            1.2,
+            colors[i],
+            2);
+
+        imshow(nome, foto);
+
+        resizeWindow(nome, foto.cols / 1.2, foto.rows / 1.2);
+
+        while (cv::getWindowProperty(nome, WND_PROP_VISIBLE) >= 1) { //Verificar se a janela foi fechada ou nao
+
+            char n = (char)waitKey(wait_time);
+
+            if (n == 27 || n == 'q' || n == 'Q') {
+
+                cv::destroyWindow(nome);
+
+                break;
+            }
+           
+        }
+
+
+    }
+
+
+    return;
+}
+
+void exibir_placar(Mat frame, vector<player>& dados) {
+
+    if (dados.size() < 3)
+        return;
+
+    string score;
+
+    cv::putText(frame,
+        "Put Your Face!",
+        cv::Point(80, 75),
+        cv::FONT_HERSHEY_DUPLEX,
+        2.0,
+        CV_RGB(255, 0, 0),
+        2);
+    cv::putText(frame,
+        "*TOP 3*",
+        cv::Point(242, 164),
+        cv::FONT_HERSHEY_DUPLEX,
+        1.2,
+        CV_RGB(255, 255, 0),
+        2);
+    
+    score = to_string(dados[0].getScore());
+    cv::putText(frame,
+        "1 Lugar: " + dados[0].getNome() + " / " + score + " pts",
+        cv::Point(125, 240),
+        cv::FONT_HERSHEY_DUPLEX,
+        1.0,
+        CV_RGB(0, 255, 0),
+        2);
+
+    score = to_string(dados[1].getScore());
+    cv::putText(frame,
+        "2 Lugar: " + dados[1].getNome() + " / " + score + " pts",
+        cv::Point(125, 290),
+        cv::FONT_HERSHEY_DUPLEX,
+        1.0,
+        CV_RGB(0, 128, 255),
+        2);
+
+    score = to_string(dados[2].getScore());
+    cv::putText(frame,
+        "3 Lugar: " + dados[2].getNome() + " / " + score + " pts",
+        cv::Point(125, 340),
+        cv::FONT_HERSHEY_DUPLEX,
+        1.0,
+        CV_RGB(0, 255, 255),
+        2);
+    imshow("result", frame);
+
+    /*Scalar(255,0,0), VERMELHO EM RGB
+        Scalar(255,128,0), LARANJA EM RGB
+        Scalar(255,255,0), AMARELO EM RGB
+        Scalar(0,255,0), VERDE EM RGB
+        Scalar(0,128,255), AZUL EM RGB
+        Scalar(0,255,255), AZUL CLARO EM RGB
+        Scalar(0,0,255), 0
+        Scalar(255,0,255)*/
+
+
+    return;
 }
 
 void lerArquivo(vector<player>& dados) {
