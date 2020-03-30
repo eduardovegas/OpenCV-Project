@@ -1,4 +1,4 @@
-# OpenCV-Project
+# PutYourFace! (OpenCV-Project)
 Projeto das disciplinas de Linguagem de Programação I e Laboratório de Linguagem de Programação I.
 
 Para Windows:
