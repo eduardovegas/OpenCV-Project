@@ -145,7 +145,7 @@ int main() {
 
                     //cout << (double)(relogio_end - relogio_init) / divisao << endl;
 
-                    if ((double)(relogio_end - relogio_init) / divisao >= 12) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
+                    if ((double)(relogio_end - relogio_init) / divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
                     {
                         cv::putText(frame, 
                             "Fim de Jogo!", 
