@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-//#include <Windows.h>
+#include <Windows.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
@@ -11,7 +11,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-//#include <opencv2\opencv.hpp>
+#include <opencv2\opencv.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
     string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
@@ -39,13 +39,14 @@ double Dwidth = Twidth / 6.0;
 double Dheight = Theight / 6.0;
 string cascadeName;
 
-/*void tocarSom(const char* path)
+void limpa_tela()
 {
     #if defined(_WIN32) || defined(_WIN64)
-            PlaySound(TEXT(path), NULL, SND_FILENAME | SND_ASYNC); //Som para o início do jogo
-        #else defined(__linux__) || defined(__unix__)
-        #endif
-}*/
+        system("cls");
+    #else defined(__linux__) || defined(__unix__)
+        system("clear");
+    #endif
+}
 
 void menu_inicial(Mat frame, double scale);
 void pegar_sigla(Mat frame, char sigla[3], string nome[3]);
@@ -352,34 +353,52 @@ void exibir_fotos(vector<player>& dados) {
         string nome = dados[i].getNome();
 
         photo = "Results/" + nome + ".jpg";
+
         Mat foto = imread(photo, -1); //FLAG UNCHANGED
-        cv::namedWindow(nome, WINDOW_FREERATIO);
-        //cv::namedWindow(dados[i].getNome(), WINDOW_AUTOSIZE);
 
-        cv::putText(foto,
-            nome,
-            cv::Point(550, 40),
-            cv::FONT_HERSHEY_DUPLEX,
-            1.2,
-            colors[i],
-            2);
+        try {
 
-        imshow(nome, foto);
+            imshow(nome, foto); //Tentar abrir imagem para ver se existe. Se não existe, lança exception 
+            cv::destroyWindow(nome); //Se existe, irá abrir, então é necessário destruir ela para abrir abaixo editada
 
-        resizeWindow(nome, foto.cols / 1.2, foto.rows / 1.2);
 
-        while (cv::getWindowProperty(nome, WND_PROP_VISIBLE) >= 1) { //Verificar se a janela foi fechada ou nao
+            cv::namedWindow(nome, WINDOW_FREERATIO);
 
-            char n = (char)waitKey(wait_time);
+            cv::putText(foto,
+                nome,
+                cv::Point(550, 40),
+                cv::FONT_HERSHEY_DUPLEX,
+                1.2,
+                colors[i],
+                2);
 
-            if (n == 27 || n == 'q' || n == 'Q') {
+            imshow(nome, foto);
 
-                cv::destroyWindow(nome);
+            resizeWindow(nome, foto.cols / 1.2, foto.rows / 1.2);
 
-                break;
+            while (cv::getWindowProperty(nome, WND_PROP_VISIBLE) >= 1) { //Verificar se a janela foi fechada ou nao
+
+                char n = (char)waitKey(wait_time);
+
+                if (n == 27 || n == 'q' || n == 'Q') {
+
+                    cv::destroyWindow(nome);
+
+                    break;
+                }
+
             }
-           
+
+            //cout << "leu" << endl;
+
         }
+        catch (const cv::Exception& exec) {
+
+            limpa_tela() //clear terminal
+            cout << "Arquivo '" + nome + ".jpg' nao existe na pasta." << endl;
+
+        }
+
 
 
     }
@@ -444,6 +463,7 @@ void exibir_placar(Mat frame, vector<player>& dados) {
         0.8,
         CV_RGB(255, 128, 0),
         2);
+    
     imshow("result", frame);
 
     /*Scalar(255,0,0), VERMELHO EM RGB
