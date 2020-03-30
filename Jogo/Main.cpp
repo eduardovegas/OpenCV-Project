@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <Windows.h>
+//#include <Windows.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
@@ -11,7 +11,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-#include <opencv2\opencv.hpp>
+//#include <opencv2\opencv.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
     string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
@@ -52,6 +52,7 @@ void menu_inicial(Mat frame, double scale);
 void pegar_sigla(Mat frame, char sigla[3], string nome[3]);
 void exibir_fotos(vector<player>& dados);
 void exibir_placar(Mat frame, vector<player>& dados);
+void creditos(Mat frame);
 void lerArquivo(vector<player>& dados);
 void adicionarPlacar(vector<player>& dados, player& jogador);
 void salvarArquivo(vector<player>& dados);
@@ -139,7 +140,7 @@ int main() {
 
                     //cout << (double)(relogio_end - relogio_init) / divisao << endl;
 
-                    if ((double)(relogio_end - relogio_init) / divisao >= 12) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
+                    if ((double)(relogio_end - relogio_init) / divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
                     {
                         cv::putText(frame, 
                             "Fim de Jogo!", 
@@ -207,6 +208,22 @@ int main() {
                 }
 
 
+                break;
+
+            case 'c':
+                while (true)
+                {
+                    capture >> frame;
+                    if (frame.empty())
+                        break;
+
+                    creditos(frame);
+
+                    char n = (char)waitKey(5);
+                    if (n == 27 || n == 'q' || n == 'Q')
+                        break;
+
+                }
                 break;
 
             case 's':
@@ -394,7 +411,7 @@ void exibir_fotos(vector<player>& dados) {
         }
         catch (const cv::Exception& exec) {
 
-            limpa_tela() //clear terminal
+            limpa_tela(); //clear terminal
             cout << "Arquivo '" + nome + ".jpg' nao existe na pasta." << endl;
 
         }
@@ -477,6 +494,48 @@ void exibir_placar(Mat frame, vector<player>& dados) {
 
 
     return;
+}
+
+void creditos(Mat frame)
+{
+    cv::putText(frame, 
+        "Put Your Face!", 
+        cv::Point(80, 75), 
+        cv::FONT_HERSHEY_DUPLEX,
+        2.0,
+        CV_RGB(255, 0, 0), 
+        2);
+    cv::putText(frame, 
+        "Criado por:", 
+        cv::Point(220, 164), 
+        cv::FONT_HERSHEY_DUPLEX,
+        1.3,
+        CV_RGB(255, 0, 0), 
+        2);
+    cv::putText(frame, 
+        "-> Andre Hugo (P2)", 
+        cv::Point(125, 290), 
+        cv::FONT_HERSHEY_DUPLEX,
+        1.0,
+        CV_RGB(255, 128, 0), 
+        2);
+    cv::putText(frame,
+        "-> Eduardo Luiz (P2)",
+        cv::Point(125, 340),
+        cv::FONT_HERSHEY_DUPLEX,
+        1.0,
+        CV_RGB(0, 255, 255),
+        2);
+
+    cv::putText(frame, 
+        "Pressione 'q' para voltar ao menu...", 
+        cv::Point(80, 447), 
+        cv::FONT_HERSHEY_DUPLEX,
+        0.8,
+        CV_RGB(255, 128, 0),
+        2);
+    
+    imshow("result", frame);
 }
 
 void lerArquivo(vector<player>& dados) {
