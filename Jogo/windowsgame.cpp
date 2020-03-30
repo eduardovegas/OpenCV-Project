@@ -6,21 +6,11 @@
 #include <time.h>
 #include <ctime> //Clock
 #include "player.hpp" //Classe Player
-
 #include "opencv2/objdetect.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
 #include <opencv2\opencv.hpp>
-
-#if defined(_WIN32) || defined(_WIN64)
-    string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
-    double divisao = 1000.0;
-#else defined(__linux__) || defined(__unix__)
-    #include <opencv2/opencv.hpp>
-    string folder = "/home/andre/Downloads/opencv-4.1.2/data/haarcascades/";
-    double divisao = 1000000.0;
-#endif
 
 #pragma comment(lib, "Winmm.lib") //Linkar Winmm.lib para tocar os soms
 
@@ -39,6 +29,9 @@ double Theight = 479.0 / scale; //Valor total da altura da tela dependendo da es
 double Dwidth = Twidth / 6.0;
 double Dheight = Theight / 6.0;
 string cascadeName;
+
+string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
+double divisao = 1000.0;
 
 void limpa_tela()
 {
