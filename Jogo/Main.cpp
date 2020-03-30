@@ -28,6 +28,7 @@ using namespace std;
 using namespace cv;
 
 double scale = 3.0;
+bool copia_maior = true;
 int vx1 = 0;
 int vx2 = 0;
 int vy1 = 0;
@@ -50,6 +51,7 @@ void limpa_tela()
 
 void menu_inicial(Mat frame, double scale);
 void pegar_sigla(Mat frame, char sigla[3], string nome[3]);
+void checar_copia(vector<player>& dados, player& jogador);
 void exibir_fotos(vector<player>& dados);
 void exibir_placar(Mat frame, vector<player>& dados);
 void exibir_creditos(Mat frame);
@@ -155,9 +157,14 @@ int main() {
                             CV_RGB(255, 255, 0), 
                             2);
                         imshow("Put Your Face!", frame);
+                        
+                        checar_copia(dados, cascade); //Checar se ja existe um jogador com a mesma sigla salvo no arquivo
 
-                        salvar = "Results/"+cascade.getNome()+".jpg";
-                        imwrite(salvar, frame); //Salvar a foto de fim de jogo
+
+                        if (copia_maior) { //Se nao existe uma copia, ou, se existir e a copia tiver uma pontuacao maior do que a do arquivo -> Sobrepor a foto
+                            salvar = "Results/" + cascade.getNome() + ".jpg";
+                            imwrite(salvar, frame); //Salvar a foto de fim de jogo
+                        }
 
                         cv::putText(frame, 
                             "Pressione 'q' para sair e salvar o placar...", 
@@ -168,16 +175,21 @@ int main() {
                             2);
                         imshow("Put Your Face!", frame);
 
-                        PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_ASYNC); // Som ao terminar a partida ASSINCRONO
+                        PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao terminar a partida ASSINCRONO
 
                         cout << "Jogador: " << cascade.getNome() << endl;
                         cout << "Score: " << cascade.getScore() << endl;
 
                         char k = (char)waitKey(0);
                         if (k == 27 || k == 'q' || k == 'Q') {
-                            adicionarPlacar(dados, cascade);
+
+                            if (copia_maior) { //Se nao existe uma copia, ou, se existir e a copia tiver uma pontuacao maior do que a do arquivo -> Sobrepor no rank
+                                adicionarPlacar(dados, cascade);
+                            }
+                            
                             cascade.setScore(0);
                             break;
+
                         }
                     }
 
@@ -281,7 +293,7 @@ void menu_inicial(Mat frame, double scale)
     {
         cv::putText(frame, //target image
             menuzim[i], //text
-            cv::Point(230, 160 + 65 * i), //top-left position
+            cv::Point(230, 175 + 65 * i), //top-left position
             cv::FONT_HERSHEY_DUPLEX,
             1.0,
             CV_RGB(255, 128, 0), //font color
@@ -356,6 +368,24 @@ void pegar_sigla(Mat frame, char sigla[3], string nome[3])
         CV_RGB(255, 128, 0), 
         2);
     imshow("Put Your Face!", frame);
+}
+
+void checar_copia(vector<player>& dados, player& jogador) {
+
+    for (int i = 0; i < dados.size(); i++) {
+
+        if (dados[i].getNome() == jogador.getNome()) { // Se ja existe um jogador com a mesma sigla
+
+            if (jogador.getScore() >= dados[i].getScore()) // Se a pontuacao atual eh maior do que a salva
+                copia_maior = true;
+            else
+                copia_maior = false;
+
+            return;
+        }
+    }
+
+    return;
 }
 
 void exibir_fotos(vector<player>& dados) {
@@ -545,6 +575,44 @@ void exibir_creditos(Mat frame)
     imshow("Put Your Face!", frame);
 }
 
+void adicionarPlacar(vector<player>& dados, player& jogador) {
+
+    int placar = 0;
+    int maior_j = -1;
+
+
+    for (int i = 0; i < dados.size(); i++) {
+
+        if (dados[i].getNome() == jogador.getNome()) { //Se existe copia
+
+            if (copia_maior)
+                dados.erase(dados.begin() + i); //Apagar o jogador do arquivo que possui uma pontuacao menor que a sua copia
+            
+            break;
+        }
+    }
+
+    for (int j = 0; j < dados.size(); j++) {
+
+
+        if (jogador.getScore() > dados[j].getScore()) {
+
+            maior_j = j;
+            break;
+
+        }
+
+    }
+
+    if(maior_j == -1)
+        dados.push_back(jogador); //Adicionar o jogador da vez
+    else
+        dados.insert(dados.begin() + maior_j, jogador); //Adicionar o jogador da vez
+
+    return;
+
+}
+
 void lerArquivo(vector<player>& dados) {
 
     std::ifstream file1; //Abrir arquivo para leitura
@@ -585,32 +653,6 @@ void lerArquivo(vector<player>& dados) {
 
     return;
 
-
-}
-
-void adicionarPlacar(vector<player>& dados, player& jogador) {
-
-    int placar = 0;
-    int maior_j = -1;
-
-
-    for (int j = 0; j < dados.size(); j++) {
-
-        if (jogador.getScore() > dados[j].getScore()) {
-
-            maior_j = j;
-            break;
-
-        }
-
-    }
-
-    if(maior_j == -1)
-        dados.push_back(jogador); //Adicionar o jogador da vez
-    else
-        dados.insert(dados.begin() + maior_j, jogador); //Adicionar o jogador da vez
-
-    return;
 
 }
 
