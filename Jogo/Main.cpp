@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-//#include <Windows.h>
+#include <Windows.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
@@ -11,7 +11,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
-//#include <opencv2\opencv.hpp>
+#include <opencv2\opencv.hpp>
 
 #if defined(_WIN32) || defined(_WIN64)
     string folder = "C:\\opencv\\build\\install\\etc\\haarcascades\\";
@@ -33,8 +33,8 @@ int vx2 = 0;
 int vy1 = 0;
 int vy2 = 0;
 int dist = 170 / scale; //Tamanho dos quadrados
-double Twidth = 638.0 / scale; //Valor total do comprimento da tela
-double Theight = 479.0 / scale; //Valor total da altura da tela
+double Twidth = 638.0 / scale; //Valor total do comprimento da tela dependendo da escala
+double Theight = 479.0 / scale; //Valor total da altura da tela dependendo da escala
 double Dwidth = Twidth / 6.0;
 double Dheight = Theight / 6.0;
 string cascadeName;
@@ -52,7 +52,7 @@ void menu_inicial(Mat frame, double scale);
 void pegar_sigla(Mat frame, char sigla[3], string nome[3]);
 void exibir_fotos(vector<player>& dados);
 void exibir_placar(Mat frame, vector<player>& dados);
-void creditos(Mat frame);
+void exibir_creditos(Mat frame);
 void lerArquivo(vector<player>& dados);
 void adicionarPlacar(vector<player>& dados, player& jogador);
 void salvarArquivo(vector<player>& dados);
@@ -96,7 +96,11 @@ int main() {
     {
         cout << "Video capturing has been started ..." << endl;
 
+        limpa_tela();
+
         lerArquivo(dados);
+
+        PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar o programa ASSINCRONO
 
         while (menu) {
 
@@ -112,6 +116,8 @@ int main() {
             {
             case 'j':
 
+                PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_ASYNC);
+
                 capture >> frame;
                 if (frame.empty())
                     break;
@@ -120,11 +126,10 @@ int main() {
 
                 cascade.setNome(nome[0] + nome[1] + nome[2]);
 
-                cout << cascade.getNome() << endl;
 
                 init = (char)waitKey(0);
 
-                //PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar o jogo
+                PlaySound(TEXT("Efeitos\\sons_arcade.wav"), NULL, SND_FILENAME | SND_ASYNC); //Som ao iniciar a partida ASSINCRONO
 
                 relogio_init = clock();
 
@@ -140,7 +145,7 @@ int main() {
 
                     //cout << (double)(relogio_end - relogio_init) / divisao << endl;
 
-                    if ((double)(relogio_end - relogio_init) / divisao >= 120) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
+                    if ((double)(relogio_end - relogio_init) / divisao >= 12) //Windows - dividir por 1000.0, Linux - dividir por 1000000.0
                     {
                         cv::putText(frame, 
                             "Fim de Jogo!", 
@@ -149,7 +154,7 @@ int main() {
                             0.9,
                             CV_RGB(255, 255, 0), 
                             2);
-                        imshow("result", frame);
+                        imshow("Put Your Face!", frame);
 
                         salvar = "Results/"+cascade.getNome()+".jpg";
                         imwrite(salvar, frame); //Salvar a foto de fim de jogo
@@ -161,9 +166,9 @@ int main() {
                             0.8,
                             CV_RGB(255, 128, 0),
                             2);
-                        imshow("result", frame);
+                        imshow("Put Your Face!", frame);
 
-                        //PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_ASYNC);
+                        PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_ASYNC); // Som ao terminar a partida ASSINCRONO
 
                         cout << "Jogador: " << cascade.getNome() << endl;
                         cout << "Score: " << cascade.getScore() << endl;
@@ -177,13 +182,14 @@ int main() {
                     }
 
                     char c = (char)waitKey(5);
-                    if (c == 27 || c == 'q' || c == 'Q')
-                        break;
+
                 }
 
                 break;
 
             case 'r':
+
+                PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_ASYNC);
 
                 capture >> frame;
                 if (frame.empty())
@@ -211,13 +217,16 @@ int main() {
                 break;
 
             case 'c':
+
+                PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_ASYNC);
+
                 while (true)
                 {
                     capture >> frame;
                     if (frame.empty())
                         break;
 
-                    creditos(frame);
+                    exibir_creditos(frame);
 
                     char n = (char)waitKey(5);
                     if (n == 27 || n == 'q' || n == 'Q')
@@ -228,7 +237,7 @@ int main() {
 
             case 's':
 
-                //PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_SYNC);
+                PlaySound(TEXT("Efeitos\\sons_endgame.wav"), NULL, SND_FILENAME | SND_SYNC);
                 salvarArquivo(dados);
                 menu = false;
                 break;
@@ -240,7 +249,6 @@ int main() {
         }
     }
 
-    //PlaySound(TEXT("Efeitos\\sons_gameover1.wav"), NULL, SND_FILENAME | SND_SYNC); //Som ao fechar o programa
 
 
     return 0;
@@ -279,7 +287,7 @@ void menu_inicial(Mat frame, double scale)
             CV_RGB(255, 128, 0), //font color
             2);
     }
-    imshow("result", frame);
+    imshow("Put Your Face!", frame);
     /*Scalar(255,0,0),
         Scalar(255,128,0),--
         Scalar(255,255,0),-
@@ -307,7 +315,7 @@ void pegar_sigla(Mat frame, char sigla[3], string nome[3])
         1.3,
         CV_RGB(255, 128, 0), 
         2);
-    imshow("result", frame);
+    imshow("Put Your Face!", frame);
 
     sigla[0] = (char)waitKey(0);
     nome[0] = sigla[0];
@@ -318,7 +326,7 @@ void pegar_sigla(Mat frame, char sigla[3], string nome[3])
         1.8,
         CV_RGB(255, 255, 0), 
         2);
-    imshow("result", frame);
+    imshow("Put Your Face!", frame);
     sigla[1] = (char)waitKey(0);
     nome[1] = sigla[1];
     cv::putText(frame, 
@@ -328,7 +336,7 @@ void pegar_sigla(Mat frame, char sigla[3], string nome[3])
         1.8,
         CV_RGB(255, 255, 0), 
         2);
-    imshow("result", frame);
+    imshow("Put Your Face!", frame);
     sigla[2] = (char)waitKey(0);
     nome[2] = sigla[2];
     cv::putText(frame, 
@@ -338,7 +346,7 @@ void pegar_sigla(Mat frame, char sigla[3], string nome[3])
         1.8,
         CV_RGB(255, 255, 0), 
         2);
-    imshow("result", frame);
+    imshow("Put Your Face!", frame);
     
     cv::putText(frame, 
         "Pressione 'j' para iniciar...", 
@@ -347,7 +355,7 @@ void pegar_sigla(Mat frame, char sigla[3], string nome[3])
         1.0,
         CV_RGB(255, 128, 0), 
         2);
-    imshow("result", frame);
+    imshow("Put Your Face!", frame);
 }
 
 void exibir_fotos(vector<player>& dados) {
@@ -365,7 +373,7 @@ void exibir_fotos(vector<player>& dados) {
     };
 
 
-    for (int i = 0; i < 3; i++) { //"Results/" + dados[i].getNome() + ".jpg"
+    for (int i = 0; i < 3; i++) {
 
         string nome = dados[i].getNome();
 
@@ -411,7 +419,6 @@ void exibir_fotos(vector<player>& dados) {
         }
         catch (const cv::Exception& exec) {
 
-            limpa_tela(); //clear terminal
             cout << "Arquivo '" + nome + ".jpg' nao existe na pasta." << endl;
 
         }
@@ -481,7 +488,7 @@ void exibir_placar(Mat frame, vector<player>& dados) {
         CV_RGB(255, 128, 0),
         2);
     
-    imshow("result", frame);
+    imshow("Put Your Face!", frame);
 
     /*Scalar(255,0,0), VERMELHO EM RGB
         Scalar(255,128,0), LARANJA EM RGB
@@ -496,7 +503,7 @@ void exibir_placar(Mat frame, vector<player>& dados) {
     return;
 }
 
-void creditos(Mat frame)
+void exibir_creditos(Mat frame)
 {
     cv::putText(frame, 
         "Put Your Face!", 
@@ -507,7 +514,7 @@ void creditos(Mat frame)
         2);
     cv::putText(frame, 
         "Criado por:", 
-        cv::Point(220, 164), 
+        cv::Point(200, 164), 
         cv::FONT_HERSHEY_DUPLEX,
         1.3,
         CV_RGB(255, 0, 0), 
@@ -534,8 +541,8 @@ void creditos(Mat frame)
         0.8,
         CV_RGB(255, 128, 0),
         2);
-    
-    imshow("result", frame);
+
+    imshow("Put Your Face!", frame);
 }
 
 void lerArquivo(vector<player>& dados) {
@@ -669,7 +676,7 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
 
     Scalar cor = colors[6];
 
-    if (foi == true) { //Achar uma posição aleatória para os quadrados
+    if (foi == true) { //Achar uma posição aleatória para os quadrados dentro de uma certa área
 
         vx1 = rand() % (((int)Twidth - (int)Dwidth - dist) - (int)Dwidth) + (int)Dwidth;
         vx2 = vx1 + dist;
@@ -695,11 +702,9 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
         if ((r.x >= vx1 && (r.x + r.width - 1) <= vx2) && (r.y >= vy1 && (r.y + r.height - 1) <= vy2)) { //Detectar dentro do quadrado desenhado
 
 
-            //printf("[%3d, %3d]  -  [%3d, %3d]\n", r.x, r.y, r.x + r.width - 1, r.y + r.height - 1);
-
             cout << "Conseguiu!" << endl;
 
-            //PlaySound(TEXT("Efeitos\\sons_bubble.wav"), NULL, SND_FILENAME | SND_SYNC);
+            PlaySound(TEXT("Efeitos\\sons_bubble.wav"), NULL, SND_FILENAME | SND_SYNC);
 
             cascade.incrementaScore();
 
@@ -724,6 +729,6 @@ void detectAndDraw(Mat& img, player& cascade, double scale, bool& foi)
         CV_RGB(255, 0, 0), //font color
         2);
 
-    imshow("result", img);
+    imshow("Put Your Face!", img);
 
 }
