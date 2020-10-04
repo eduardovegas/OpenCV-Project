@@ -3,7 +3,7 @@ Projeto final das disciplinas de Linguagem de Programação I e Laboratório de 
 
 "**PutYourFace!**" utiliza a biblioteca OpenCV, integrando a webcam do computador e reconhecimento facial para criar um jogo divertido e que irá te tirar do tédio ao mesmo tempo que serve como um exercicío. Ao iniciar a partida, quadrados aleatórios irão aparecer na tela, o objetivo do jogo é conseguir o maior número de pontos dentre dois minutos, posicionando o rosto dentro da área do quadrado gerado. E, o mais importante, lembre-se de posar para a foto vencedora no final e divirta-se!
 
-Link dos vídeos de demonstração do programa no MEGA: https://mega.nz/#!TN0RTRhb!_dVbVfC_aFzyERquSu15EbbjQw6UHKBhkhl8ROLu8oE
+Link dos vídeos de demonstração do programa no MEGA: https://mega.nz/#!TN0RTRhb!_dVbVfC_aFzyERquSu15EbbjQw6UHKBhkhl8ROLu8oE e https://mega.nz/file/uRdR3CTZ#14vuPfwayRGUX4ysBNAntrWOcj6-3V3B29gJIL02xcs
 
 Necessário:
 - Fazer download da pasta 'Results', que contém o rank e as imagens salvas de cada jogador.
